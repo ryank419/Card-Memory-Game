@@ -1,11 +1,81 @@
 img {
     image-rendering: pixelated;
+    background-color: transparent;
+}
+
+h1, p {
+    font-family: '8bitlim';
+    color: white;
+    letter-spacing: 3px;
+}
+
+img.card-img {
+    width: 100%;
+    height: auto;
+    scale: -1 1;
+    rotate: 0deg;
+    
+    transition:
+        scale 1 ease-out,
+        rotate 0.075s ease-in;
+}
+
+img.card-img:hover {
+    rotate: 1deg;
+}
+
+img.card-img:active {
+    rotate: -1deg;
+}
+
+img.card-img.flipped {
+    scale: 1 1;
+    rotate: 0deg;
 }
 
 .card {
-    width: 36px;
-    background-color: #fff;
-    display: flex;
+    width: 108px;
+    background-color: transparent;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
+    margin: 10px;
 }
+
+#cards {
+    /* Display cards in an array, centered within its parent, allowing for wrapping and setting the maximum amount of rows and columns of cards */
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    grid-template-columns: repeat(var(--cards-per-row), 108px);
+    gap: 10px;
+    max-width: 720px;
+    margin: 0 auto;
+    border: 2px solid white;
+}
+
+body {
+    display: flex;
+    justify-content: center;
+    align-items: normal;
+    height: 100vh;
+    margin: 0;
+    background-color: #201d2e;
+}
+
+main {
+    /* Display elements one on top of each other but in the center of the screen */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid white;
+
+}
+
+@font-face {
+    font-family: '8bitlim';
+    src: url('fonts/8bitlim.ttf') format('truetype');
+}
+
