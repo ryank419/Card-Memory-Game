@@ -10,27 +10,34 @@ h1, p {
 }
 
 img.card-img {
+    --flip-duration: 0.3s;
     width: 100%;
     height: auto;
-    scale: -1 1;
-    rotate: 0deg;
+    transform: scaleX(-1);
+    scale: 1;
+    filter: brightness(1);
     
     transition:
-        scale 1 ease-out,
-        rotate 0.075s ease-in;
+        transform var(--flip-duration) linear,
+        scale 0.05s ease-out,
+        rotate 0.01s ease-in;
 }
 
 img.card-img:hover {
+    scale: 1.05;
     rotate: 1deg;
+    filter: brightness(1.1);
 }
 
 img.card-img:active {
-    rotate: -1deg;
+    scale: 0.95;
 }
 
 img.card-img.flipped {
-    scale: 1 1;
+    transform: scaleX(1);
+    scale: 1;
     rotate: 0deg;
+    filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.8));
 }
 
 .card {

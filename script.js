@@ -1,8 +1,10 @@
-let hoveredCard = null;
 const cardContainer = document.getElementById('cards');
 const cardFlipSound = new Audio('sfx/card-flip.wav');
 const cardHoverSound = new Audio('sfx/card-hover.wav');
 const addCardButton = document.getElementById('addCardButton');
+
+let CanFlip = true;
+let firstCard, secondCard;
 
 const availableCards = ["hearts-ace", "hearts-2", "hearts-3", "hearts-4", "hearts-5", "hearts-6", "hearts-7", "hearts-8", "hearts-9", "hearts-10", "hearts-jack", "hearts-queen", "hearts-king",
                         "diamonds-ace", "diamonds-2", "diamonds-3", "diamonds-4", "diamonds-5", "diamonds-6", "diamonds-7", "diamonds-8", "diamonds-9", "diamonds-10", "diamonds-jack", "diamonds-queen", "diamonds-king",
@@ -64,8 +66,18 @@ function choosePairs(pairs) {
 }
 
 function flipCard(card) {
+    if (!CanFlip) return;
+    if (card.lastElementChild.classList.contains('flipped')) return; // Don't flip if already flipped
+
+    const flipDuration = parseFloat(getComputedStyle(card.lastElementChild).getPropertyValue('--flip-duration')) * 1000;
+
     card.lastElementChild.classList.toggle('flipped');
-    cardFlipSound.cloneNode().play();
+    setTimeout(() => {
+            card.lastElementChild.src = `images/${card.dataset.cardId}.png`;
+    }, flipDuration / 2.0); // Delay to allow flip animation
+
+    cardFlipSound.currentTime = 0; // Reset sound to allow rapid flipping
+    cardFlipSound.play();
 }
 
 function setCardsPerRow(n) {
@@ -74,15 +86,16 @@ function setCardsPerRow(n) {
 }
 
 function onCardHover(card) {
-    if (hoveredCard !== card) {
-        hoveredCard = card;
-        cardHoverSound.cloneNode().play();
+    
+    if (!card.lastElementChild.classList.contains('flipped')){
+        cardHoverSound.currentTime = 0; // Reset sound to allow rapid hovering
+        cardHoverSound.play();
     }
+    
     console.log(`Hovered card ID: ${card.dataset.cardId}`);
 }
 
+/* TODO: Remove this function if not needed */
 function onCardLeave(card) {
-    if (hoveredCard === card) {
-        hoveredCard = null;
-    }
+    return;
 }
