@@ -1,12 +1,23 @@
+* {
+    user-select: none;
+    -webkit-user-drag: none;
+}
+
 img {
     image-rendering: pixelated;
     background-color: transparent;
 }
 
-h1, p {
+h1 {
     font-family: 'big-pixel-font';
     color: white;
     letter-spacing: 3px;
+}
+
+p, label {
+    font-family: 'small-pixel-font';
+    color: white;
+    letter-spacing: 2px;
 }
 
 img.card-img {
@@ -38,39 +49,46 @@ img.card-img.flipped {
     scale: 1;
     rotate: 0deg;
     filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.7));
+
+    transition:
+        transform var(--flip-duration) linear,
+        scale 0.05s ease-out,
+        rotate 0.01s ease-in,
+        filter 0.05s ease-in;
 }
 
 img.card-img.flipped.matched {
-    filter: drop-shadow(0 0 10px rgba(56, 255, 66, 0.7)) sepia(100%) saturate(100%);
+    filter: drop-shadow(0 0 10px rgb(255 236 31)) sepia(100%) saturate(300%) hue-rotate(55deg);
+}
+
+img.card-img.flipped.rejected {
+    filter: drop-shadow(0 0 10px rgb(255 78 78)) sepia(50%) saturate(300%) hue-rotate(-20deg);
 }
 
 .card {
-    width: 108px;
+    width: calc(36px * var(--size-multiplier));
     background-color: transparent;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    margin: 10px;
+    margin: 0px;
 }
 
 #cards {
-    /* Display cards in an array, centered within its parent, allowing for wrapping and setting the maximum amount of rows and columns of cards */
-    display: flex;
+    display: grid;
     flex-wrap: wrap;
     justify-content: center;
     align-items: center;
-    grid-template-columns: repeat(var(--cards-per-row), 108px);
-    gap: 10px;
-    max-width: 720px;
-    margin: 0 auto;
-    border: 2px solid white;
+    grid-template-columns: repeat(var(--cards-per-row), auto);
+    gap: 25px;
+    margin: 20px;
 }
 
 body {
     display: flex;
+    flex-direction: column;
     justify-content: center;
-    align-items: normal;
-    height: 100vh;
+    align-items: center;
     margin: 0;
     background-color: #201d2e;
 }
@@ -81,13 +99,13 @@ main {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    border: 2px solid white;
+    
 
 }
 
 @font-face {
     font-family: 'big-pixel-font';
-    src: url('fonts/Born2bSportyFS.otf') format('truetype');
+    src: url('fonts/Born2bSportyFS.otf') format('opentype');
 }
 
 @font-face {
