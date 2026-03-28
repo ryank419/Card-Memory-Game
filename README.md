@@ -3,6 +3,8 @@ My first web project. A simple browser-based card matching game built with JavaS
 
 **Card Assets:** *Pixel Art Cards* by Lempf ([OpenGameArt](https://opengameart.org/content/pixel-art-cards))
 
-**Sound Effects:** Made using [sfxr.me](https://sfxr.me/)
+**Sound Effects:** Made using ([sfxr.me](https://sfxr.me/))
 
-**Fonts:** 
+**Fonts:**
+* *([Born2bSporty](https://www.1001fonts.com/born2bsporty-fs-font.html))* by UkiyoMoji
+* *([Hydrophilia Iced Regular](https://www.1001fonts.com/hydrophilia-font.html))* by Floodfonts
