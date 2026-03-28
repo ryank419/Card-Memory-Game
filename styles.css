@@ -4,7 +4,7 @@ img {
 }
 
 h1, p {
-    font-family: '8bitlim';
+    font-family: 'big-pixel-font';
     color: white;
     letter-spacing: 3px;
 }
@@ -40,7 +40,7 @@ img.card-img.flipped {
     filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.7));
 }
 
-img.card-img.flipped[data-matched="true"] {
+img.card-img.flipped.matched {
     filter: drop-shadow(0 0 10px rgba(56, 255, 66, 0.7)) sepia(100%) saturate(100%);
 }
 
@@ -86,7 +86,12 @@ main {
 }
 
 @font-face {
-    font-family: '8bitlim';
-    src: url('fonts/8bitlim.ttf') format('truetype');
+    font-family: 'big-pixel-font';
+    src: url('fonts/Born2bSportyFS.otf') format('truetype');
+}
+
+@font-face {
+    font-family: 'small-pixel-font';
+    src: url('fonts/HydrophiliaIced-Regular.ttf') format('truetype');
 }
 
