@@ -1,6 +1,7 @@
 const cardContainer = document.getElementById('cards');
 const cardFlipSound = new Audio('sfx/card-flip.wav');
 const cardHoverSound = new Audio('sfx/card-hover.wav');
+const cardResetSound = new Audio('sfx/card-reset.wav');
 const addCardButton = document.getElementById('addCardButton');
 
 let CanFlip = true;
@@ -76,8 +77,49 @@ function flipCard(card) {
             card.lastElementChild.src = `images/${card.dataset.cardId}.png`;
     }, flipDuration / 2.0); // Delay to allow flip animation
 
-    cardFlipSound.currentTime = 0; // Reset sound to allow rapid flipping
+    // Play flip sound with slight pitch variation
+    cardFlipSound.currentTime = 0;
+    cardFlipSound.playbackRate = 0.9 + Math.random() * 0.2;
+    cardFlipSound.preservesPitch = false;
     cardFlipSound.play();
+
+    if (!firstCard) {
+        firstCard = card;
+    }
+    if (!secondCard && card !== firstCard) {
+        secondCard = card;
+        CanFlip = false;
+        checkPair();
+    }
+}
+
+function resetCard(card) {
+    const flipDuration = parseFloat(getComputedStyle(card.lastElementChild).getPropertyValue('--flip-duration')) * 1000;
+    card.lastElementChild.classList.remove('flipped');
+    setTimeout(() => {
+        card.lastElementChild.src = 'images/card-back.png';
+    }, flipDuration / 2.0);
+}
+
+function checkPair() {
+    setTimeout(() => {
+        if (firstCard.dataset.cardId === secondCard.dataset.cardId) {
+            firstCard.classList.add('matched');
+            secondCard.classList.add('matched');
+        }
+        else {
+            firstCard.lastElementChild.classList.remove('flipped');
+            secondCard.lastElementChild.classList.remove('flipped');
+            
+        }
+        firstCard.removeEventListener('click', () => flipCard(firstCard));
+        secondCard.removeEventListener('click', () => flipCard(secondCard));
+        firstCard = null;
+        secondCard = null;
+        CanFlip = true;
+
+    }
+    , 1000);
 }
 
 function setCardsPerRow(n) {
@@ -87,8 +129,11 @@ function setCardsPerRow(n) {
 
 function onCardHover(card) {
     
+    // Play hover sound only if the card is not flipped
     if (!card.lastElementChild.classList.contains('flipped')){
-        cardHoverSound.currentTime = 0; // Reset sound to allow rapid hovering
+        cardHoverSound.currentTime = 0;
+        cardHoverSound.playbackRate = 0.9 + Math.random() * 0.2;
+        cardHoverSound.preservesPitch = false;
         cardHoverSound.play();
     }
     

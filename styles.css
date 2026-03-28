@@ -37,7 +37,11 @@ img.card-img.flipped {
     transform: scaleX(1);
     scale: 1;
     rotate: 0deg;
-    filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.8));
+    filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.7));
+}
+
+img.card-img.flipped[data-matched="true"] {
+    filter: drop-shadow(0 0 10px rgba(56, 255, 66, 0.7)) sepia(100%) saturate(100%);
 }
 
 .card {
