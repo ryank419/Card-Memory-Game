@@ -26,12 +26,13 @@ img.card-img {
     height: auto;
     transform: scaleX(-1);
     scale: 1;
-    filter: brightness(1);
+    filter: brightness(1) drop-shadow(0 0 10px rgba(0, 0, 0, 0.4));
     
     transition:
         transform var(--flip-duration) linear,
         scale 0.05s ease-out,
-        rotate 0.01s ease-in;
+        rotate 0.01s ease-in,
+        filter 0.05s ease-in;
 }
 
 img.card-img:hover {
@@ -49,12 +50,6 @@ img.card-img.flipped {
     scale: 1;
     rotate: 0deg;
     filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.7));
-
-    transition:
-        transform var(--flip-duration) linear,
-        scale 0.05s ease-out,
-        rotate 0.01s ease-in,
-        filter 0.05s ease-in;
 }
 
 img.card-img.flipped.matched {
@@ -90,7 +85,10 @@ body {
     justify-content: center;
     align-items: center;
     margin: 0;
-    background-color: #201d2e;
+    background-image: url('images/background1.png');
+    background-size: 128px;
+    background-repeat: repeat;
+    image-rendering: pixelated;
 }
 
 main {
