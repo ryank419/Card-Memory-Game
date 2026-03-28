@@ -85,10 +85,15 @@ body {
     justify-content: center;
     align-items: center;
     margin: 0;
-    background-image: url('images/background1.png');
-    background-size: 128px;
-    background-repeat: repeat;
+
+    background:
+        radial-gradient(circle, transparent 30%, rgba(0, 0, 0, 0.4) 100%),
+        url('images/background1.png');
+    background-repeat: no-repeat, repeat;
+    background-attachment: fixed;
     image-rendering: pixelated;
+    background-size: 100vw, 128px;
+    background-position: 0 0, var(--background-offset) var(--background-offset);
 }
 
 main {

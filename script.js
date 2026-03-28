@@ -32,6 +32,13 @@ difficultySelect.addEventListener('change', () => {
 
 document.addEventListener('DOMContentLoaded', () => {
     newGame();
+    let offset = 1;
+    setInterval(() => {
+        offset -= 1;
+        document.documentElement.style.setProperty('--background-offset', `${offset}px`);
+
+    }, 20);
+
 });
 
 function newGame() {
