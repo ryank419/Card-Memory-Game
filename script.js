@@ -24,10 +24,11 @@ const availableCards = ["hearts-ace", "hearts-2", "hearts-3", "hearts-4", "heart
 
 let chosenCards = [];
 
-const difficulties = {
-    "Easy": 5,
-    "Medium": 9,
-    "Hard": 16
+const difficulties = { // [pairs, cards per row, size multiplier]
+    "Easy": [5, 5, 3],
+    "Medium": [9, 6, 2.5],
+    "Hard": [16, 8, 2.25],
+    "Testing": [2, 4, 3] // TODO: Delete after testing
 };
 let difficulty = difficulties[difficultySelect.value];
 
@@ -55,38 +56,61 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function winGame() { // TODO: Implement this function
+    const cards = Array.from(document.querySelectorAll('.card'));
     // Play win sound
     // Show win message
     // Play win animation (cards dancing)
+    cards.forEach(card => {
+        setTimeout(() => {
+            card.lastElementChild.classList.add('cheering');
+        }, Math.floor(Math.random() * 7) * 100);
+    });
+
     // Play cheering sounds based on the card
+    chosenCards.forEach(cardId => {
+        setTimeout(() => {
+            playCheerSound(cardId);
+        }, Math.floor(Math.random() * 7) * 100);
+    });
+
     // Start a new game after a delay
+    setTimeout(() => {
+        newGame();
+    }, 4000);
 }
 
+function playCheerSound(cardId) {
+    const randomCheers = ['sfx/cheer1.wav', 'sfx/cheer2.wav', 'sfx/cheer3.wav'];
+    let cheerSound;
+    if (cardId.includes('king')) {
+        cheerSound = new Audio('sfx/cheer-king.wav');
+    } else if (cardId.includes('queen')) {
+        cheerSound = new Audio('sfx/cheer-queen.wav');
+    } else if (cardId.includes('jack')) {
+        cheerSound = new Audio('sfx/cheer-jack.wav');
+    } else {
+        cheerSound = new Audio(randomCheers[Math.floor(Math.random() * randomCheers.length)]);
+    }
+    cheerSound.preservesPitch = false;
+    cheerSound.playbackRate = 0.8 + Math.random() * 0.4;
+    cheerSound.play();
+    console.log(`Card ${cardId} is cheering! Cheer sound: ${cheerSound.src}`); // TODO: Delete after testing
+}
+
+
 function newGame() {
-    // Reset match count
+    // Reset match count and first/second card variables
+    firstCard = null;
+    secondCard = null;
     matchesFound = 0;
     const matchesDisplay = document.getElementById('matches');
     matchesDisplay.textContent = matchesFound;
 
     // Reset cards based on difficulty
-    let sizeMultiplier = 1;
     difficulty = difficulties[difficultySelect.value];
-    switch (difficultySelect.value) {
-        case "Easy":
-            setCardsPerRow(5);
-            sizeMultiplier = 3;
-            break;
-        case "Medium":
-            setCardsPerRow(6);
-            sizeMultiplier = 2.5;
-
-            break;
-        case "Hard":
-            setCardsPerRow(8);
-            sizeMultiplier = 2.25;
-            break;
-    }
-    choosePairs(difficulty);
+    const sizeMultiplier = difficulty[2];
+    setCardsPerRow(difficulty[1]);
+    choosePairs(difficulty[0]);
     createCards();
 
     // Change card sizes based on difficulty
@@ -183,15 +207,21 @@ function acceptMatch() {
     matchAcceptSound.currentTime = 0;
     matchAcceptSound.play();
 
+    // Increment match count and update display
     matchesFound++;
-
     const matchesDisplay = document.getElementById('matches');
     matchesDisplay.textContent = matchesFound;
 
     firstCard = null;
     secondCard = null;
     CanFlip = true;
-    console.log(`Match found! It was ${firstCard.dataset.cardId}. Total matches found: ${matchesFound}`);
+
+    // Win the game if all cards are matched
+    if (matchesFound === difficulty[0]) {
+        setTimeout(() => {
+            winGame();
+        }, 700);
+    }
 }
 
 function rejectMatch() {
@@ -269,7 +299,10 @@ function toggleMusicVolume() {
 // - Music
 // - Match 3
 // - Mode that shuffles cards every time you miss two matches in a row
+// - Hints
 
 // Things I want to improve:
 // - Refactor flipCard to maybe get rid of resetCard (although could get too clunky)
+//   ^ selectCard function (called when you click a card), which calls new flipCard function (flip/reset card and play sound)
 // - Make visuals based on hovering over the card itself instead of the image since the image escapes the cursor when it moves sometimes
+// - Possibly make the card flipping even more separate from the game logic
