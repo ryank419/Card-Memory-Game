@@ -47,7 +47,7 @@ img.card-img {
     
     transition:
         transform var(--flip-duration) ease-in-out,
-        scale 0.1s cubic-bezier(.8, 0, .2, 3),
+        scale 0.1s cubic-bezier(.4, 0, .2, 3),
         rotate 0.01s ease-in,
         filter 0.05s ease-in;
 }
@@ -114,13 +114,34 @@ body {
 }
 
 main {
-    /* Display elements one on top of each other but in the center of the screen */
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    
+}
 
+#lower-left-dock {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    width: auto;
+    height: auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+}
+
+.volume-icon {
+    width: 48px;
+    height: auto;
+    margin: 5px;
+
+
+    transition: filter 0.1s ease-out;
+}
+
+.volume-icon.muted {
+    filter: grayscale(100%) brightness(0.5);
 }
 
 @font-face {

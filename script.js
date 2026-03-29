@@ -4,12 +4,18 @@ const cardHoverSound = new Audio('sfx/card-hover.wav');
 const cardResetSound = new Audio('sfx/card-reset.wav');
 const matchRejectSound = new Audio('sfx/match-reject.wav');
 const matchAcceptSound = new Audio('sfx/match-accept.wav');
+
 const resetGameButton = document.getElementById('reset-game-button');
 const difficultySelect = document.getElementById('difficulty-select');
+
+const sfxIcon = document.getElementById('sfx-icon');
+const musicIcon = document.getElementById('music-icon');
 
 let CanFlip = true;
 let firstCard, secondCard;
 let matchesFound = 0;
+let sfxVolume = 0.5;
+
 
 const availableCards = ["hearts-ace", "hearts-2", "hearts-3", "hearts-4", "hearts-5", "hearts-6", "hearts-7", "hearts-8", "hearts-9", "hearts-10", "hearts-jack", "hearts-queen", "hearts-king",
     "diamonds-ace", "diamonds-2", "diamonds-3", "diamonds-4", "diamonds-5", "diamonds-6", "diamonds-7", "diamonds-8", "diamonds-9", "diamonds-10", "diamonds-jack", "diamonds-queen", "diamonds-king",
@@ -25,9 +31,6 @@ const difficulties = {
 };
 let difficulty = difficulties[difficultySelect.value];
 
-difficultySelect.addEventListener('change', () => {
-    newGame();
-});
 
 document.addEventListener('DOMContentLoaded', () => {
     // Background image scrolling
@@ -37,13 +40,21 @@ document.addEventListener('DOMContentLoaded', () => {
         offset -= 1;
     }, 20);
 
+    // Register event listeners
     resetGameButton.addEventListener('click', newGame); // TODO: Delete after testing
+
+    difficultySelect.addEventListener('change', () => {
+        newGame();
+    });
+
+    sfxIcon.addEventListener('click', toggleSFXVolume);
+    musicIcon.addEventListener('click', toggleMusicVolume);
 
     newGame();
 
 });
 
-function winGame() {
+function winGame() { // TODO: Implement this function
     // Play win sound
     // Show win message
     // Play win animation (cards dancing)
@@ -228,12 +239,36 @@ function onCardHover(card) {
     }
 }
 
+let sfxMuted = false;
+function toggleSFXVolume() {
+    sfxMuted = !sfxMuted;
+    cardFlipSound.volume = sfxMuted ? 0 : 1;
+    cardHoverSound.volume = sfxMuted ? 0 : 1;
+    cardResetSound.volume = sfxMuted ? 0 : 1;
+    matchRejectSound.volume = sfxMuted ? 0 : 1;
+    matchAcceptSound.volume = sfxMuted ? 0 : 1;
+    // sfxIcon.src = sfxMuted ? 'images/sfx-icon-muted.png' : 'images/sfx-icon.png';
+    sfxIcon.classList.toggle('muted', sfxMuted);
+}
+
+let musicMuted = false;
+function toggleMusicVolume() {
+    musicMuted = !musicMuted;
+    // TODO: Implement music and set its volume to 0 when muted
+    // musicIcon.src = musicMuted ? 'images/music-icon-muted.png' : 'images/music-icon.png';
+
+    musicIcon.classList.toggle('muted', musicMuted);
+}
+
+
 // Things I want to add:
 // - Timer
 // - Choosing different card themes (animals, flags, etc.)
 // - Different background themes (space, nature, etc.)
 // - Mute option
 // - Music
+// - Match 3
+// - Mode that shuffles cards every time you miss two matches in a row
 
 // Things I want to improve:
 // - Refactor flipCard to maybe get rid of resetCard (although could get too clunky)
