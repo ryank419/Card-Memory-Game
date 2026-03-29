@@ -3,6 +3,7 @@ const cardFlipSound = new Audio('sfx/card-flip.wav');
 const cardHoverSound = new Audio('sfx/card-hover.wav');
 const cardResetSound = new Audio('sfx/card-reset.wav');
 const matchRejectSound = new Audio('sfx/match-reject.wav');
+const matchAcceptSound = new Audio('sfx/match-accept.wav');
 const resetGameButton = document.getElementById('reset-game-button');
 const difficultySelect = document.getElementById('difficulty-select');
 
@@ -158,6 +159,8 @@ function checkPair() {
 function acceptMatch() {
     firstCard.lastElementChild.classList.add('matched');
     secondCard.lastElementChild.classList.add('matched');
+    matchAcceptSound.play();
+    
     matchesFound++;
 
     const matchesDisplay = document.getElementById('matches');
