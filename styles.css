@@ -20,28 +20,41 @@ p, label {
     letter-spacing: 2px;
 }
 
+select {
+    font-family: 'small-pixel-font';
+    color: rgb(0, 0, 0);
+    background:
+        url('images/joker-red.png') no-repeat center;
+    border: 2px solid white;
+    padding: 5px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+option {
+    background-color: white;
+    color: black;
+    font-family: 'small-pixel-font';
+}
+
 img.card-img {
     --flip-duration: 0.3s;
     width: 100%;
     height: auto;
     transform: scaleX(-1);
-    position: relative;
-    top: 0px;
     scale: 1;
     filter: brightness(1) drop-shadow(0 0 10px rgba(0, 0, 0, 0.4));
     
     transition:
-        transform var(--flip-duration) linear,
-        top 0.1s ease-out,
-        scale 0.05s ease-out,
+        transform var(--flip-duration) ease-in-out,
+        scale 0.1s cubic-bezier(.8, 0, .2, 3),
         rotate 0.01s ease-in,
         filter 0.05s ease-in;
 }
 
 img.card-img:hover {
-    scale: 1.05;
+    scale: 1.1;
     rotate: 1deg;
-    top: -10px;
     filter: brightness(1.1);
 }
 

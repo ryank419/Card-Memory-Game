@@ -25,24 +25,39 @@ const difficulties = {
 };
 let difficulty = difficulties[difficultySelect.value];
 
-resetGameButton.addEventListener('click', newGame);
-
 difficultySelect.addEventListener('change', () => {
     newGame();
 });
 
 document.addEventListener('DOMContentLoaded', () => {
-    newGame();
+    // Background image scrolling
     let offset = 1;
     setInterval(() => {
-        offset -= 1;
         document.documentElement.style.setProperty('--background-offset', `${offset}px`);
-
+        offset -= 1;
     }, 20);
+
+    resetGameButton.addEventListener('click', newGame); // TODO: Delete after testing
+
+    newGame();
 
 });
 
+function winGame() {
+    // Play win sound
+    // Show win message
+    // Play win animation (cards dancing)
+    // Play cheering sounds based on the card
+    // Start a new game after a delay
+}
+
 function newGame() {
+    // Reset match count
+    matchesFound = 0;
+    const matchesDisplay = document.getElementById('matches');
+    matchesDisplay.textContent = matchesFound;
+
+    // Reset cards based on difficulty
     let sizeMultiplier = 1;
     difficulty = difficulties[difficultySelect.value];
     switch (difficultySelect.value) {
@@ -57,16 +72,13 @@ function newGame() {
             break;
         case "Hard":
             setCardsPerRow(8);
-            sizeMultiplier = 2;
+            sizeMultiplier = 2.25;
             break;
     }
-    
-    matchesFound = 0;
-    const matchesDisplay = document.getElementById('matches');
-    matchesDisplay.textContent = matchesFound;
     choosePairs(difficulty);
     createCards();
 
+    // Change card sizes based on difficulty
     for (let i = 0; i < cardContainer.children.length; i++) {
         cardContainer.children[i].style.setProperty('--size-multiplier', sizeMultiplier);
     }
@@ -76,7 +88,7 @@ function createCards() {
 
     // Clear container and create new card elements based on chosenCards
     cardContainer.innerHTML = '';
-    for (let i = 0; i < chosenCards.length; i++) {
+    for (let i = 0; i < chosenCards.length; i++) { // Create two cards for every pair chosen
         cardContainer.innerHTML += `
         <span class="card" data-card-id="${chosenCards[i]}">
             <img src="images/card-back.png" class="card-img">
@@ -88,36 +100,34 @@ function createCards() {
     }
 
     // Shuffle cards using Fisher-Yates algorithm
-    const elements = Array.from(cardContainer.children);
+    const cards = Array.from(cardContainer.querySelectorAll('.card'));
 
-    for (let i = elements.length - 1; i > 0; i--) {
+    for (let i = cards.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
-        [elements[i], elements[j]] = [elements[j], elements[i]];
+        [cards[i], cards[j]] = [cards[j], cards[i]];
     }
-    elements.forEach(el => cardContainer.appendChild(el));
+    cards.forEach(card => cardContainer.appendChild(card));
 
     // Add event listeners to cards
-    const cards = document.querySelectorAll('.card');
     cards.forEach(card => {
         card.addEventListener('click', () => flipCard(card));
         card.addEventListener('mouseover', () => onCardHover(card));
-        card.addEventListener('mouseout', () => onCardLeave(card));
     });
 }
 
 function choosePairs(pairs) {
-    chosenCards = [];
-    pairs = Number(pairs) || 5;
+    chosenCards = []; // Array for chosen card pairs
+    pairs = Number(pairs);
     for (let i = 0; i < pairs; i++) {
         let chosenPair = availableCards[Math.floor(Math.random() * availableCards.length)];
-        while (chosenCards.includes(chosenPair)) {
+        while (chosenCards.includes(chosenPair)) { // Keep choosing until we get a card that hasn't been chosen yet
             chosenPair = availableCards[Math.floor(Math.random() * availableCards.length)];
         }
         chosenCards[i] = chosenPair;
     }
 }
 
-function flipCard(card) {
+function flipCard(card) { // TODO: Possibly reduce the return conditions if possible
     if (!CanFlip) return;
     if (firstCard && secondCard) return; // Don't flip if two cards are already flipped
     if (card.lastElementChild.classList.contains('flipped')) return; // Don't flip if already flipped
@@ -125,11 +135,11 @@ function flipCard(card) {
     const flipDuration = parseFloat(getComputedStyle(card.lastElementChild).getPropertyValue('--flip-duration')) * 1000;
 
     card.lastElementChild.classList.toggle('flipped');
-    setTimeout(() => {
+    setTimeout(() => { // Change card image halfway through flip
         card.lastElementChild.src = `images/${card.dataset.cardId}.png`;
-    }, flipDuration / 2.0); // Delay to allow flip animation
+    }, flipDuration / 2.0);
 
-    // Play flip sound with slight pitch variation
+    // Play flip sound with slight pitch randomization
     cardFlipSound.currentTime = 0;
     cardFlipSound.playbackRate = 0.9 + Math.random() * 0.2;
     cardFlipSound.preservesPitch = false;
@@ -159,25 +169,27 @@ function checkPair() {
 function acceptMatch() {
     firstCard.lastElementChild.classList.add('matched');
     secondCard.lastElementChild.classList.add('matched');
+    matchAcceptSound.currentTime = 0;
     matchAcceptSound.play();
-    
+
     matchesFound++;
 
     const matchesDisplay = document.getElementById('matches');
     matchesDisplay.textContent = matchesFound;
 
-    CanFlip = true;
     firstCard = null;
     secondCard = null;
+    CanFlip = true;
     console.log(`Match found! It was ${firstCard.dataset.cardId}. Total matches found: ${matchesFound}`);
 }
 
 function rejectMatch() {
-    matchRejectSound.play();
     firstCard.lastElementChild.classList.add('rejected');
     secondCard.lastElementChild.classList.add('rejected');
+    matchRejectSound.currentTime = 0;
+    matchRejectSound.play();
+
     setTimeout(() => {
-        console.log(`No match! First card: ${firstCard.dataset.cardId}, Second card: ${secondCard.dataset.cardId}`);
         resetCard(firstCard);
         resetCard(secondCard);
 
@@ -216,7 +228,13 @@ function onCardHover(card) {
     }
 }
 
-/* TODO: Remove this function if not needed */
-function onCardLeave(card) {
-    return;
-}
+// Things I want to add:
+// - Timer
+// - Choosing different card themes (animals, flags, etc.)
+// - Different background themes (space, nature, etc.)
+// - Mute option
+// - Music
+
+// Things I want to improve:
+// - Refactor flipCard to maybe get rid of resetCard (although could get too clunky)
+// - Make visuals based on hovering over the card itself instead of the image since the image escapes the cursor when it moves sometimes
