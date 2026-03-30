@@ -11,6 +11,7 @@ const difficultyButtons = Array.from(document.querySelectorAll('.difficulty-butt
 const sfxIcon = document.getElementById('sfx-icon');
 const musicIcon = document.getElementById('music-icon');
 
+const timeoutIds = []; // Array to keep track of active timeouts for cleanup on game reset
 let CanFlip = true;
 let firstCard, secondCard;
 let matchesFound = 0;
@@ -65,20 +66,20 @@ function winGame() { // TODO: Implement this function
     // Show win message
     // Play win animation (cards dancing)
     cards.forEach(card => {
-        setTimeout(() => {
+        setTrackedTimeout(() => {
             card.lastElementChild.classList.add('cheering');
         }, Math.floor(Math.random() * 7) * 100);
     });
 
     // Play cheering sounds based on the card
     chosenCards.forEach(cardId => {
-        setTimeout(() => {
+        setTrackedTimeout(() => {
             playCheerSound(cardId);
         }, Math.floor(Math.random() * 7) * 100);
     });
 
     // Start a new game after a delay
-    setTimeout(() => {
+    setTrackedTimeout(() => {
         newGame();
     }, 4000);
 }
@@ -104,9 +105,12 @@ function playCheerSound(cardId) {
 
 
 function newGame() {
+    // Clear any active timeouts to prevent them from affecting the new game
+    clearTrackedTimeouts();
     // Reset match count and first/second card variables
     firstCard = null;
     secondCard = null;
+    CanFlip = true;
     matchesFound = 0;
     const matchesDisplay = document.getElementById('matches');
     matchesDisplay.textContent = matchesFound;
@@ -174,7 +178,7 @@ function flipCard(card) { // TODO: Possibly reduce the return conditions if poss
     const flipDuration = parseFloat(getComputedStyle(card.lastElementChild).getPropertyValue('--flip-duration')) * 1000;
 
     card.lastElementChild.classList.toggle('flipped');
-    setTimeout(() => { // Change card image halfway through flip
+    setTrackedTimeout(() => { // Change card image halfway through flip
         card.lastElementChild.src = `images/${card.dataset.cardId}.png`;
     }, flipDuration / 2.0);
 
@@ -195,7 +199,7 @@ function flipCard(card) { // TODO: Possibly reduce the return conditions if poss
 }
 
 function checkPair() {
-    setTimeout(() => {
+    setTrackedTimeout(() => {
         if (firstCard.dataset.cardId === secondCard.dataset.cardId) {
             acceptMatch();
         }
@@ -222,7 +226,7 @@ function acceptMatch() {
 
     // Win the game if all cards are matched
     if (matchesFound === difficulty[0]) {
-        setTimeout(() => {
+        setTrackedTimeout(() => {
             winGame();
         }, 700);
     }
@@ -234,7 +238,7 @@ function rejectMatch() {
     matchRejectSound.currentTime = 0;
     matchRejectSound.play();
 
-    setTimeout(() => {
+    setTrackedTimeout(() => {
         resetCard(firstCard);
         resetCard(secondCard);
 
@@ -248,10 +252,10 @@ function resetCard(card) {
     const flipDuration = parseFloat(getComputedStyle(card.lastElementChild).getPropertyValue('--flip-duration')) * 1000;
     card.lastElementChild.classList.remove('rejected');
     card.lastElementChild.classList.remove('flipped');
-    setTimeout(() => {
+    setTrackedTimeout(() => {
         card.lastElementChild.src = 'images/card-back.png';
     }, flipDuration / 2.0);
-    setTimeout(() => { CanFlip = true; }, flipDuration);
+    setTrackedTimeout(() => { CanFlip = true; }, flipDuration);
 
     cardResetSound.play();
 }
@@ -294,6 +298,16 @@ function toggleMusicVolume() {
     musicIcon.classList.toggle('muted', musicMuted);
 }
 
+function setTrackedTimeout(callback, delay) {
+    const timeoutId = setTimeout(callback, delay);
+    timeoutIds.push(timeoutId);
+    return timeoutId;
+}
+
+function clearTrackedTimeouts() {
+    timeoutIds.forEach(timeoutId => clearTimeout(timeoutId));
+    timeoutIds.length = [];
+}
 // Things I want to add:
 // - Timer
 // - Choosing different card themes (animals, flags, etc.)
