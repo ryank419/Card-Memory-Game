@@ -17,14 +17,11 @@
             <img id="music-icon" src="images/music-icon.png" class="volume-icon">
         </div>
     </div>
-    <div>
-        <label for="difficulty-select">Select Difficulty:</label>
-        <select id="difficulty-select">
-            <option value="Easy">Easy</option>
-            <option value="Medium">Medium</option>
-            <option value="Hard">Hard</option>
-            <option value="Testing">Testing</option>
-        </select>
+    <div id="difficulty-buttons">
+        <button class="difficulty-button" data-difficulty="easy">Easy</button>
+        <button class="difficulty-button" data-difficulty="medium">Medium</button>
+        <button class="difficulty-button" data-difficulty="hard">Hard</button>
+        <button class="difficulty-button" data-difficulty="testing">Testing</button>
     </div>
     <main id="game" role="main">
         <p>Matches found: <span id="matches">0</span></p>

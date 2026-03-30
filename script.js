@@ -6,7 +6,7 @@ const matchRejectSound = new Audio('sfx/match-reject.wav');
 const matchAcceptSound = new Audio('sfx/match-accept.wav');
 
 const resetGameButton = document.getElementById('reset-game-button');
-const difficultySelect = document.getElementById('difficulty-select');
+const difficultyButtons = Array.from(document.querySelectorAll('.difficulty-button'));
 
 const sfxIcon = document.getElementById('sfx-icon');
 const musicIcon = document.getElementById('music-icon');
@@ -24,13 +24,13 @@ const availableCards = ["hearts-ace", "hearts-2", "hearts-3", "hearts-4", "heart
 let chosenCards = [];
 
 const difficulties = { // [pairs, cards per row, size multiplier]
-    "Easy": [5, 5, 3],
-    "Medium": [9, 6, 2.5],
-    "Hard": [16, 8, 2.25],
-    "Testing": [2, 4, 3] // TODO: Delete after testing
+    "easy": [5, 5, 3],
+    "medium": [9, 6, 2.5],
+    "hard": [16, 8, 2.25],
+    "testing": [2, 4, 3] // TODO: Delete after testing
 };
-let difficulty = difficulties[difficultySelect.value];
 
+let difficulty = difficulties['easy'];
 
 document.addEventListener('DOMContentLoaded', () => {
     // Background image scrolling
@@ -38,14 +38,19 @@ document.addEventListener('DOMContentLoaded', () => {
     setInterval(() => {
         document.documentElement.style.setProperty('--background-offset', `${offset}px`);
         offset -= 1;
+        offset = offset % 128;
     }, 20);
 
     // Register event listeners
     resetGameButton.addEventListener('click', newGame); // TODO: Delete after testing
 
-    difficultySelect.addEventListener('change', () => {
-        newGame();
+    difficultyButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            difficulty = difficulties[button.dataset.difficulty];
+            newGame();
+        });
     });
+
 
     sfxIcon.addEventListener('click', toggleSFXVolume);
     musicIcon.addEventListener('click', toggleMusicVolume);
@@ -107,7 +112,6 @@ function newGame() {
     matchesDisplay.textContent = matchesFound;
 
     // Reset cards based on difficulty
-    difficulty = difficulties[difficultySelect.value];
     const sizeMultiplier = difficulty[2];
     setCardsPerRow(difficulty[1]);
     choosePairs(difficulty[0]);

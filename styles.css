@@ -146,6 +146,56 @@ main {
     filter: grayscale(100%) brightness(0.5);
 }
 
+.difficulty-button {
+    width: 160px;
+    height: 80px;
+    color: white;
+    min-width: 120px;
+    font-family: 'small-pixel-font';
+    font-size: 16pt;
+    letter-spacing: 2px;
+    background: transparent;
+    border-image-source: url('images/ui-slice-gray.png');
+    border-image-slice: 3 fill;
+    border-width: 10px;
+    padding: 5px 10px;
+    margin: 10px;
+    cursor: pointer;
+    filter: brightness(1);
+
+    transition:
+        filter 0.1s ease-out;
+}
+
+.difficulty-button:hover {
+    filter: brightness(1.2);
+}
+
+.difficulty-button:active {
+    filter: brightness(0.9);
+}
+
+.difficulty-button[data-difficulty="easy"] {
+    border-image-source: url('images/ui-slice-green.png');
+}
+.difficulty-button[data-difficulty="medium"] {
+    border-image-source: url('images/ui-slice-yellow.png');
+}
+.difficulty-button[data-difficulty="hard"] {
+    border-image-source: url('images/ui-slice-red.png');
+}
+
+#difficulty-buttons {
+    display: flex;
+    justify-content: center;
+    align-content: center;
+    border-image-source: url('images/ui-slice-gray.png');
+    border-image-slice: 3 fill;
+    border-width: 10px;
+    border-style: solid;
+    padding: 10px;
+}
+
 @font-face {
     font-family: 'big-pixel-font';
     src: url('fonts/Born2bSportyFS.otf') format('opentype');
