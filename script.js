@@ -14,7 +14,6 @@ const musicIcon = document.getElementById('music-icon');
 let CanFlip = true;
 let firstCard, secondCard;
 let matchesFound = 0;
-let sfxVolume = 0.5;
 
 
 const availableCards = ["hearts-ace", "hearts-2", "hearts-3", "hearts-4", "hearts-5", "hearts-6", "hearts-7", "hearts-8", "hearts-9", "hearts-10", "hearts-jack", "hearts-queen", "hearts-king",
@@ -93,6 +92,7 @@ function playCheerSound(cardId) {
     }
     cheerSound.preservesPitch = false;
     cheerSound.playbackRate = 0.8 + Math.random() * 0.4;
+    cheerSound.volume = sfxMuted ? 0 : 1;
     cheerSound.play();
     console.log(`Card ${cardId} is cheering! Cheer sound: ${cheerSound.src}`); // TODO: Delete after testing
 }
@@ -290,19 +290,21 @@ function toggleMusicVolume() {
     musicIcon.classList.toggle('muted', musicMuted);
 }
 
-
 // Things I want to add:
 // - Timer
 // - Choosing different card themes (animals, flags, etc.)
 // - Different background themes (space, nature, etc.)
-// - Mute option
-// - Music
 // - Match 3
 // - Mode that shuffles cards every time you miss two matches in a row
 // - Hints
+// - Music
 
 // Things I want to improve:
 // - Refactor flipCard to maybe get rid of resetCard (although could get too clunky)
 //   ^ selectCard function (called when you click a card), which calls new flipCard function (flip/reset card and play sound)
 // - Make visuals based on hovering over the card itself instead of the image since the image escapes the cursor when it moves sometimes
 // - Possibly make the card flipping even more separate from the game logic
+
+// Feedback received:
+// - Audio too loud
+// - "Custom" difficulty
