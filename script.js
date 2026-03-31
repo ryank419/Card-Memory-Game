@@ -32,11 +32,10 @@ const difficulties = { // [pairs, cards per row, size multiplier, reveal time]
 
 let chosenCards = [];
 let firstCard, secondCard;
+let difficulty = difficulties.easy;
 let matchesFound = 0;
 let timer = 0;
 let isTimerRunning = false;
-
-let difficulty = difficulties.easy;
 
 
 document.addEventListener('DOMContentLoaded', () => { // Ensure DOM is loaded before doing important initialization stuff
@@ -82,8 +81,6 @@ function winGame() { // TODO: Finish implementing this fully
             playCheerSound(cardId);
         }, Math.floor(Math.random() * 7) * 100);
     });
-
-    stopTimer();
 
     // Start a new game after a delay
     setTrackedTimeout(() => {
@@ -254,6 +251,7 @@ function acceptMatch() {
 
     // Win the game if all cards are matched
     if (matchesFound === difficulty[0]) {
+        stopTimer();
         setTrackedTimeout(() => {
             winGame();
         }, 700);
@@ -283,14 +281,18 @@ function setCardsPerRow(n) {
 }
 
 let timerInterval;
+let timerStart = null;
 function startTimer() {
+    if (isTimerRunning) return;
     isTimerRunning = true;
+    timerStart = performance.now() - timer;
     timerInterval = setInterval(() => {
-        timer++;
-        const minutes = Math.floor(timer / 60).toString().padStart(2, '0');
-        const seconds = (timer % 60).toString().padStart(2, '0');
-        document.getElementById('timer').textContent = `${minutes}:${seconds}`;
-    }, 1000);
+        timer = Math.floor(performance.now() - timerStart);
+        const milliseconds = (timer % 1000).toString().padStart(3, '0');
+        const seconds = (Math.floor(timer / 1000) % 60).toString().padStart(2, '0');
+        const minutes = Math.floor(timer / 60000).toString().padStart(2, '0');
+        document.getElementById('timer').textContent = `${minutes}:${seconds}:${milliseconds}`;
+    }, 16);
 }
 
 function stopTimer() {
@@ -301,7 +303,7 @@ function stopTimer() {
 function resetTimer() {
     stopTimer();
     timer = 0;
-    document.getElementById('timer').textContent = '00:00';
+    document.getElementById('timer').textContent = '00:00.000';
 }
 
 
@@ -349,7 +351,6 @@ function clearTrackedTimeouts() { // Allows for canceling all timeouts (for rest
 }
 
 // Things I want to add:
-// - Timer
 // - Choosing different card themes (animals, flags, etc.)
 // - Different background themes (space, nature, etc.)
 // - Match 3
