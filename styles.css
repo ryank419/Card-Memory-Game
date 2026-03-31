@@ -18,6 +18,7 @@ p, label {
     font-family: 'small-pixel-font';
     color: white;
     letter-spacing: 2px;
+    font-size: 14pt;
 }
 
 select {
@@ -194,6 +195,22 @@ main {
     border-width: 10px;
     border-style: solid;
     padding: 10px;
+    filter: drop-shadow(0 0 10px rgba(0, 0, 0, 0.4));
+}
+
+#toolbar {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    max-width: 600px;
+    padding: 0px 20px;
+    margin: 10px 0px;
+    box-sizing: border-box;
+    border-image-source: url('images/ui-slice-gray.png');
+    border-image-slice: 3 fill;
+    border-width: 10px;
+    border-style: solid;
+    filter: drop-shadow(0 0 10px rgba(0, 0, 0, 0.4));
 }
 
 @font-face {

@@ -5,7 +5,6 @@ const cardResetSound = new Audio('sfx/card-reset.wav');
 const matchRejectSound = new Audio('sfx/match-reject.wav');
 const matchAcceptSound = new Audio('sfx/match-accept.wav');
 
-const resetGameButton = document.getElementById('reset-game-button');
 const difficultyButtons = Array.from(document.querySelectorAll('.difficulty-button'));
 
 const sfxIcon = document.getElementById('sfx-icon');
@@ -43,7 +42,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 20);
 
     // Register event listeners
-    resetGameButton.addEventListener('click', newGame); // TODO: Delete after testing
 
     difficultyButtons.forEach(button => {
         button.addEventListener('click', () => {
@@ -108,9 +106,7 @@ function newGame() {
     // Clear any active timeouts to prevent them from affecting the new game
     clearTrackedTimeouts();
     // Reset match count and first/second card variables
-    firstCard = null;
-    secondCard = null;
-    CanFlip = true;
+    clearPair();
     matchesFound = 0;
     const matchesDisplay = document.getElementById('matches');
     matchesDisplay.textContent = matchesFound;
@@ -153,7 +149,7 @@ function createCards() {
 
     // Add event listeners to cards
     cards.forEach(card => {
-        card.addEventListener('click', () => flipCard(card));
+        card.addEventListener('click', () => selectCard(card));
         card.addEventListener('mouseover', () => onCardHover(card));
     });
 }
@@ -170,31 +166,46 @@ function choosePairs(pairs) {
     }
 }
 
-function flipCard(card) { // TODO: Possibly reduce the return conditions if possible
-    if (!CanFlip) return;
-    if (firstCard && secondCard) return; // Don't flip if two cards are already flipped
-    if (card.lastElementChild.classList.contains('flipped')) return; // Don't flip if already flipped
-
-    const flipDuration = parseFloat(getComputedStyle(card.lastElementChild).getPropertyValue('--flip-duration')) * 1000;
-
-    card.lastElementChild.classList.toggle('flipped');
-    setTrackedTimeout(() => { // Change card image halfway through flip
-        card.lastElementChild.src = `images/${card.dataset.cardId}.png`;
-    }, flipDuration / 2.0);
-
-    // Play flip sound with slight pitch randomization
-    cardFlipSound.currentTime = 0;
-    cardFlipSound.playbackRate = 0.9 + Math.random() * 0.2;
-    cardFlipSound.preservesPitch = false;
-    cardFlipSound.play();
+function selectCard(card) {
+    if (card.lastElementChild.classList.contains('matched')) return;
 
     if (!firstCard) {
         firstCard = card;
     }
-    if (!secondCard && card !== firstCard) {
+    else if (!secondCard && card !== firstCard) {
         secondCard = card;
-        CanFlip = false;
-        checkPair();
+    } else return;
+    flipCard(card);
+    if (firstCard && secondCard) checkPair();
+}
+
+function flipCard(card) {
+
+    const flipDuration = parseFloat(getComputedStyle(card.lastElementChild).getPropertyValue('--flip-duration')) * 1000;
+    // Don't need CanFlip anymore (or any boolean to track) since you can only select a card if a pair hasn't been flipped yet
+
+    card.lastElementChild.classList.toggle('flipped');
+    if (card.lastElementChild.classList.contains('flipped')) { // Not flipped -> Flipped
+
+        setTrackedTimeout(() => {
+            card.lastElementChild.src = `images/${card.dataset.cardId}.png`;
+        }, flipDuration / 2.0);
+
+        cardFlipSound.currentTime = 0;
+        cardFlipSound.playbackRate = 0.9 + Math.random() * 0.2;
+        cardFlipSound.preservesPitch = false;
+        cardFlipSound.play();
+
+    } else { // Flipped -> Not flipped
+        setTrackedTimeout(() => {
+            card.lastElementChild.src = `images/card-back.png`;
+        }, flipDuration / 2.0);
+
+        cardResetSound.currentTime = 0;
+        cardResetSound.playbackRate = 0.9 + Math.random() * 0.2;
+        cardResetSound.preservesPitch = false;
+        cardResetSound.play();
+
     }
 }
 
@@ -209,6 +220,16 @@ function checkPair() {
     }, 600);
 }
 
+function clearPair() {
+    if (!firstCard || !secondCard) return;
+    if (firstCard.lastElementChild.classList.contains('rejected'))
+        firstCard.lastElementChild.classList.remove('rejected');
+    if (secondCard.lastElementChild.classList.contains('rejected'))
+        secondCard.lastElementChild.classList.remove('rejected');
+    firstCard = null;
+    secondCard = null;
+}
+
 function acceptMatch() {
     firstCard.lastElementChild.classList.add('matched');
     secondCard.lastElementChild.classList.add('matched');
@@ -220,9 +241,7 @@ function acceptMatch() {
     const matchesDisplay = document.getElementById('matches');
     matchesDisplay.textContent = matchesFound;
 
-    firstCard = null;
-    secondCard = null;
-    CanFlip = true;
+    clearPair();
 
     // Win the game if all cards are matched
     if (matchesFound === difficulty[0]) {
@@ -239,25 +258,10 @@ function rejectMatch() {
     matchRejectSound.play();
 
     setTrackedTimeout(() => {
-        resetCard(firstCard);
-        resetCard(secondCard);
-
-        firstCard = null;
-        secondCard = null;
-        CanFlip = true;
+        flipCard(firstCard);
+        flipCard(secondCard);
+        clearPair();
     }, 500);
-}
-
-function resetCard(card) {
-    const flipDuration = parseFloat(getComputedStyle(card.lastElementChild).getPropertyValue('--flip-duration')) * 1000;
-    card.lastElementChild.classList.remove('rejected');
-    card.lastElementChild.classList.remove('flipped');
-    setTrackedTimeout(() => {
-        card.lastElementChild.src = 'images/card-back.png';
-    }, flipDuration / 2.0);
-    setTrackedTimeout(() => { CanFlip = true; }, flipDuration);
-
-    cardResetSound.play();
 }
 
 function setCardsPerRow(n) {
@@ -298,12 +302,14 @@ function toggleMusicVolume() {
     musicIcon.classList.toggle('muted', musicMuted);
 }
 
+// Tracks all timeouts set by this function
 function setTrackedTimeout(callback, delay) {
     const timeoutId = setTimeout(callback, delay);
     timeoutIds.push(timeoutId);
     return timeoutId;
 }
 
+// Allows us to cancel all timeouts (for restarting the game without old timeouts interfering)
 function clearTrackedTimeouts() {
     timeoutIds.forEach(timeoutId => clearTimeout(timeoutId));
     timeoutIds.length = [];
@@ -316,6 +322,8 @@ function clearTrackedTimeouts() {
 // - Mode that shuffles cards every time you miss two matches in a row
 // - Hints
 // - Music
+// - Win sound
+// - Combo counter
 
 // Things I want to improve:
 // - Refactor flipCard to maybe get rid of resetCard (although could get too clunky)
