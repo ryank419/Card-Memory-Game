@@ -23,11 +23,11 @@ const availableCards = ["hearts-ace", "hearts-2", "hearts-3", "hearts-4", "heart
     "clubs-ace", "clubs-2", "clubs-3", "clubs-4", "clubs-5", "clubs-6", "clubs-7", "clubs-8", "clubs-9", "clubs-10", "clubs-jack", "clubs-queen", "clubs-king",
     "spades-ace", "spades-2", "spades-3", "spades-4", "spades-5", "spades-6", "spades-7", "spades-8", "spades-9", "spades-10", "spades-jack", "spades-queen", "spades-king"];
 
-const difficulties = { // [pairs, cards per row, size multiplier]
-    "easy": [5, 5, 3],
-    "medium": [9, 6, 2.5],
-    "hard": [16, 8, 2.25],
-    "testing": [2, 4, 3] // TODO: Delete after testing
+const difficulties = { // [pairs, cards per row, size multiplier, reveal time]
+    "easy": [5, 5, 3, 1500],
+    "medium": [9, 6, 2.5, 2000],
+    "hard": [16, 8, 2.25, 3000],
+    "testing": [2, 4, 3, 3000] // TODO: Delete after testing
 };
 
 let chosenCards = [];
@@ -83,6 +83,8 @@ function winGame() { // TODO: Finish implementing this fully
         }, Math.floor(Math.random() * 7) * 100);
     });
 
+    stopTimer();
+
     // Start a new game after a delay
     setTrackedTimeout(() => {
         newGame();
@@ -111,6 +113,7 @@ function newGame() { // Resets the game with new cards (based on the current dif
     clearTrackedTimeouts();
     // Reset match count and first/second card variables
     clearPair();
+    resetTimer();
     matchesFound = 0;
     const matchesDisplay = document.getElementById('matches');
     matchesDisplay.textContent = matchesFound;
@@ -144,17 +147,22 @@ function createCards() { // Creates a pair of card elements from randomly chosen
 
     // Shuffle cards using Fisher-Yates algorithm
     const cards = Array.from(cardContainer.querySelectorAll('.card'));
-
     for (let i = cards.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [cards[i], cards[j]] = [cards[j], cards[i]];
     }
-    cards.forEach(card => cardContainer.appendChild(card));
+    cards.forEach(card => cardContainer.appendChild(card)); // Doesn't add duplicate cards, just reorders them since they're already in the container
 
     // Add event listeners to cards
     cards.forEach(card => {
-        card.addEventListener('click', () => selectCard(card));
-        card.addEventListener('mouseover', () => onCardHover(card));
+        setTrackedTimeout(() => {
+            flipCard(card); // Flip all cards face up at the start of the game for a brief moment to let the player memorize them
+            setTrackedTimeout(() => {
+                flipCard(card);
+                card.addEventListener('click', () => selectCard(card));
+                card.addEventListener('mouseover', () => onCardHover(card));
+            }, difficulty[3]); // Waits the specified reveal time based on the difficulty
+        }, 300);
     });
 }
 
@@ -221,7 +229,7 @@ function checkPair() { // Checks if a selected pair of cards is a match
         else {
             rejectMatch();
         }
-    }, 600);
+    }, 400);
 }
 
 // TODO: Review this later, might simplify by using an array for selected cards instead of firstCard/secondCard variables
