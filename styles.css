@@ -23,18 +23,18 @@ p, label {
 
 select {
     font-family: 'small-pixel-font';
-    color: rgb(0, 0, 0);
-    background:
-        url('images/joker-red.png') no-repeat center;
-    border: 2px solid white;
+    color: rgb(255, 255, 255);
+    background: rgb(43, 50, 60);
+    border: 3px solid rgb(22, 26, 33);
     padding: 5px;
     border-radius: 5px;
     cursor: pointer;
+    width: 80%;
 }
 
 option {
-    background-color: white;
-    color: black;
+    background-color: rgb(22, 26, 33);
+    color: rgb(255, 255, 255);
     font-family: 'small-pixel-font';
 }
 
@@ -100,28 +100,30 @@ img.card-img.flipped.cheering {
     margin: 20px;
 }
 
-body {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    margin: 0;
-
-    background:
-        radial-gradient(circle, transparent 30%, rgba(0, 0, 0, 0.4) 100%),
-        url('images/background1.png');
-    background-repeat: no-repeat, repeat;
-    background-attachment: fixed;
-    image-rendering: pixelated;
-    background-size: 100vw, 128px;
-    background-position: 0 0, var(--background-offset) var(--background-offset);
-}
-
 main {
     display: flex;
     flex-direction: column;
-    align-items: center;
+    flex-grow: 1;
     justify-content: center;
+    align-items: center;
+    margin: 0;
+    width: auto;
+    height: 100vh;
+    background: radial-gradient(circle, transparent 30%, rgba(0, 0, 0, 0.5) 100%);    
+}
+
+body {
+    display: flex;
+    justify-content:stretch;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+    image-rendering: pixelated;
+    background: url('images/background1.png');
+    background-repeat: repeat;
+    background-attachment: fixed;
+    background-size: 128px;
+    background-position: var(--background-offset) var(--background-offset);
 }
 
 #lower-left-dock {
@@ -186,16 +188,60 @@ main {
     border-image-source: url('images/ui-slice-red.png');
 }
 
-#difficulty-buttons {
+#sidebar {
     display: flex;
-    justify-content: center;
+    justify-content: start;
     align-content: center;
-    border-image-source: url('images/ui-slice-gray.png');
-    border-image-slice: 3 fill;
-    border-width: 10px;
-    border-style: solid;
-    padding: 10px;
+    width: 25vw;
+    background: rgb(31, 36, 44);
+    border: 3px solid rgb(22, 26, 33);
     filter: drop-shadow(0 0 10px rgba(0, 0, 0, 0.4));
+}
+
+.tab {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 75%;
+}
+
+#tab-buttons {
+    display: flex;
+    flex-direction: column;
+    background: rgb(43, 50, 60);
+    width: 25%;
+    padding: 4px;
+}
+
+.tab-button {
+    height: 100px;
+    width: auto;
+    color: white;
+    font-family: 'small-pixel-font';
+    font-size: 14pt;
+    letter-spacing: 2px;
+    background: rgb(54, 60, 72);
+    border: 0px solid transparent;
+    margin-bottom: 4px;
+    padding: 5px 10px;
+    cursor: pointer;
+    filter: brightness(1);
+
+    transition:
+        font-size 0.1s ease-out,
+        filter 0.1s ease-out,
+        border 0.2s ease-out;
+}
+
+.tab-button:hover {
+    font-size: 15pt;
+    filter: brightness(1.2);
+    border: 3px solid rgba(255, 255, 255, 0.077);
+}
+
+.tab-button:last-child {
+     margin-top: auto;
 }
 
 #toolbar {

@@ -11,6 +11,15 @@ const cheerSounds = {
     "random": [new Audio('sfx/cheer1.wav'), new Audio('sfx/cheer2.wav'), new Audio('sfx/cheer3.wav')]
 }
 
+let settings = {
+    "background": "background1",
+    "cardTheme": "classic",
+    "cardBack": "classic",
+    "music": "classic",
+    "musicVolume": 1,
+    "sfxVolume": 1,
+}
+
 const difficultyButtons = Array.from(document.querySelectorAll('.difficulty-button'));
 
 const sfxIcon = document.getElementById('sfx-icon');
@@ -157,7 +166,7 @@ function createCards() { // Creates a pair of card elements from randomly chosen
             setTrackedTimeout(() => {
                 flipCard(card);
                 card.addEventListener('click', () => selectCard(card));
-                card.addEventListener('mouseover', () => onCardHover(card));
+                card.addEventListener('mouseenter', () => onCardHover(card));
             }, difficulty[3]); // Waits the specified reveal time based on the difficulty
         }, 300);
     });
@@ -291,7 +300,7 @@ function startTimer() {
         const milliseconds = (timer % 1000).toString().padStart(3, '0');
         const seconds = (Math.floor(timer / 1000) % 60).toString().padStart(2, '0');
         const minutes = Math.floor(timer / 60000).toString().padStart(2, '0');
-        document.getElementById('timer').textContent = `${minutes}:${seconds}:${milliseconds}`;
+        document.getElementById('timer').textContent = `${minutes}:${seconds}.${milliseconds}`;
     }, 16);
 }
 
@@ -351,17 +360,20 @@ function clearTrackedTimeouts() { // Allows for canceling all timeouts (for rest
 }
 
 // Things I want to add:
-// - Choosing different card themes (animals, flags, etc.)
-// - Different background themes (space, nature, etc.)
+// - Sidebar menu with tabs
+//   ^ Gamemodes, settings, difficulty, leaderboard, themes, etc.
 // - Match 3
 // - Mode that shuffles cards every time you miss two matches in a row
 // - Hints
 // - Music
 // - Win sound
 // - Combo counter
+// - Different background themes (space, nature, etc.)
+// - Choosing different card themes (animals, flags, etc.)
+// - Mobile styles for smaller screens
 
 // Things I want to improve:
-// - Make visuals based on hovering over the card itself instead of the image since the image escapes the cursor when it moves sometimes
+//
 
 // Feedback received:
 // - Audio too loud (Fixed)

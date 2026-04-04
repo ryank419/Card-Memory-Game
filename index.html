@@ -9,19 +9,22 @@
 </head>
 
 <body>
-    <h1>Card Memory Game</h1>
-    <p>Click on the cards to flip them. Try to find all the matching pairs!</p>
-    <div id="lower-left-dock">
-        <div>
-            <img id="sfx-icon" src="images/sfx-icon.png" class="volume-icon">
-            <img id="music-icon" src="images/music-icon.png" class="volume-icon">
+    <div id="sidebar">
+        <div id="tab-buttons">
+            <button class="tab-button">Play</button>
+            <button class="tab-button">Records</button>
+            <button class="tab-button">Settings</button>
         </div>
-    </div>
-    <div id="difficulty-buttons">
-        <button class="difficulty-button" data-difficulty="easy">Easy</button>
-        <button class="difficulty-button" data-difficulty="medium">Medium</button>
-        <button class="difficulty-button" data-difficulty="hard">Hard</button>
-        <button class="difficulty-button" data-difficulty="testing">Testing</button>
+        <div class="tab">
+            <select name="gamemode-selection" id="gamemode-selection">
+                <option value="classic">Classic</option>
+                <option value="timed">Timed</option>
+            </select>
+            <button class="difficulty-button" data-difficulty="easy">Easy</button>
+            <button class="difficulty-button" data-difficulty="medium">Medium</button>
+            <button class="difficulty-button" data-difficulty="hard">Hard</button>
+            <button class="difficulty-button" data-difficulty="testing">Testing</button>
+        </div>
     </div>
     <main id="game" role="main">
         <div id="toolbar">
@@ -30,13 +33,18 @@
             </p>
             <p>|</p>
             <p>
-                <span>Time: <span id="timer">00:00</span></span>
+                <span>Time: <span id="timer">00:00.000</span></span>
             </p>
         </div>
         <div id="cards">
         </div>
-
     </main>
+    <div id="lower-left-dock">
+        <div>
+            <img id="sfx-icon" src="images/sfx-icon.png" class="volume-icon">
+            <img id="music-icon" src="images/music-icon.png" class="volume-icon">
+        </div>
+    </div>
 
     <script src="script.js" defer></script>
 </body>
