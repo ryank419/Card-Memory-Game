@@ -12,9 +12,18 @@
     <h1>Card Memory Game</h1>
     <p>Click on the cards to flip them. Try to find all the matching pairs!</p>
     <div id="lower-left-dock">
-        <div>
-            <img id="sfx-icon" src="images/sfx-icon.png" class="volume-icon">
-            <img id="music-icon" src="images/music-icon.png" class="volume-icon">
+        <div class="volume-control">
+            <div class="volume-panel">
+                <input id="sfx-volume-slider" type="range" class="volume-slider" min="0" max="1" step="0.05">
+            </div>
+            <img id="sfx-icon" src="images/ui/sfx-icon.png" class="volume-icon">
+        </div>
+
+        <div class="volume-control">
+            <div class="volume-panel">
+                <input id="music-volume-slider" type="range" class="volume-slider" min="0" max="1" step="0.05">
+            </div>
+            <img id="music-icon" src="images/ui/music-icon.png" class="volume-icon">
         </div>
     </div>
     <div id="difficulty-buttons">

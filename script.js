@@ -1,27 +1,35 @@
 const cardContainer = document.getElementById('cards');
-const cardFlipSound = new Audio('sfx/card-flip.wav');
-const cardHoverSound = new Audio('sfx/card-hover.wav');
-const cardResetSound = new Audio('sfx/card-reset.wav');
-const matchRejectSound = new Audio('sfx/match-reject.wav');
-const matchAcceptSound = new Audio('sfx/match-accept.wav');
-const cheerSounds = {
-    "king": new Audio('sfx/cheer-king.wav'),
-    "queen": new Audio('sfx/cheer-queen.wav'),
-    "jack": new Audio('sfx/cheer-jack.wav'),
-    "random": [new Audio('sfx/cheer1.wav'), new Audio('sfx/cheer2.wav'), new Audio('sfx/cheer3.wav')]
+const sfx = {
+    cardFlip: new Audio('sfx/card-flip.wav'),
+    cardHover: new Audio('sfx/card-hover.wav'),
+    cardReset: new Audio('sfx/card-reset.wav'),
+    matchReject: new Audio('sfx/match-reject.wav'),
+    matchAccept: new Audio('sfx/match-accept.wav'),
+    cheerSounds: {
+        king: new Audio('sfx/cheer-king.wav'),
+        queen: new Audio('sfx/cheer-queen.wav'),
+        jack: new Audio('sfx/cheer-jack.wav'),
+        random: [new Audio('sfx/cheer1.wav'), new Audio('sfx/cheer2.wav'), new Audio('sfx/cheer3.wav')]
+    }
 }
 
-const difficultyButtons = Array.from(document.querySelectorAll('.difficulty-button'));
+let sfxVolume = 1;
+let musicVolume = 1;
+let sfxMuted = false;
+let musicMuted = false;
 
+const difficultyButtons = Array.from(document.querySelectorAll('.difficulty-button'));
+const volumeControls = document.querySelectorAll('.volume-control');
 const sfxIcon = document.getElementById('sfx-icon');
 const musicIcon = document.getElementById('music-icon');
 
 const timeoutIds = []; // Array to keep track of active timeouts for cleanup on game reset
-// TODO: Populate array based on cards in a new folder in images (will work with themes also)
-const availableCards = ["hearts-ace", "hearts-2", "hearts-3", "hearts-4", "hearts-5", "hearts-6", "hearts-7", "hearts-8", "hearts-9", "hearts-10", "hearts-jack", "hearts-queen", "hearts-king",
+
+let availableCards = ["hearts-ace", "hearts-2", "hearts-3", "hearts-4", "hearts-5", "hearts-6", "hearts-7", "hearts-8", "hearts-9", "hearts-10", "hearts-jack", "hearts-queen", "hearts-king",
     "diamonds-ace", "diamonds-2", "diamonds-3", "diamonds-4", "diamonds-5", "diamonds-6", "diamonds-7", "diamonds-8", "diamonds-9", "diamonds-10", "diamonds-jack", "diamonds-queen", "diamonds-king",
     "clubs-ace", "clubs-2", "clubs-3", "clubs-4", "clubs-5", "clubs-6", "clubs-7", "clubs-8", "clubs-9", "clubs-10", "clubs-jack", "clubs-queen", "clubs-king",
-    "spades-ace", "spades-2", "spades-3", "spades-4", "spades-5", "spades-6", "spades-7", "spades-8", "spades-9", "spades-10", "spades-jack", "spades-queen", "spades-king"];
+    "spades-ace", "spades-2", "spades-3", "spades-4", "spades-5", "spades-6", "spades-7", "spades-8", "spades-9", "spades-10", "spades-jack", "spades-queen", "spades-king"
+];
 
 const difficulties = { // [pairs, cards per row, size multiplier, reveal time]
     "easy": [5, 5, 3, 1500],
@@ -36,11 +44,37 @@ let difficulty = difficulties.easy;
 let matchesFound = 0;
 let timer = 0;
 let isTimerRunning = false;
+let music = new Audio('music/card-game-theme-classic.wav');
 
+// Only play music after first interaction with page (for autoplay policies)
+function onFirstInteraction() {
+    playBGMLoop();
+    ["click", "keydown", "touchstart"].forEach(event =>
+        window.removeEventListener(event, onFirstInteraction, { once: true })
+    );
+}
+
+const audioCtx = new AudioContext();
+const musicGainNode = audioCtx.createGain();
+musicGainNode.gain.value = musicVolume;
+musicGainNode.connect(audioCtx.destination);
+
+async function playBGMLoop() {
+    const response = await fetch("music/card-game-theme-classic.wav");
+    const arrayBuffer = await response.arrayBuffer();
+    const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+
+    const source = audioCtx.createBufferSource();
+    source.buffer = audioBuffer;
+    source.loop = true;
+
+    source.connect(musicGainNode);
+    source.start(0);
+}
 
 document.addEventListener('DOMContentLoaded', () => { // Ensure DOM is loaded before doing important initialization stuff
     // Background image scrolling
-    let offset = 1;
+    let offset = 0;
     setInterval(() => {
         document.documentElement.style.setProperty('--background-offset', `${offset}px`);
         offset -= 1;
@@ -49,6 +83,37 @@ document.addEventListener('DOMContentLoaded', () => { // Ensure DOM is loaded be
 
     // Register event listeners
 
+    const musicSlider = document.getElementById('music-volume-slider');
+    const sfxSlider = document.getElementById('sfx-volume-slider');
+    volumeControls.forEach(control => {
+        const icon = control.querySelector('.volume-icon');
+
+        musicSlider.addEventListener('input', () => {
+            setMusicVolume(musicSlider.value);
+        });
+
+        sfxSlider.addEventListener('input', () => {
+            setSFXVolume(sfxSlider.value);
+        });
+
+        icon.addEventListener('click', () => {
+            if (icon === sfxIcon) {
+                sfxMuted = !sfxMuted;
+                control.classList.toggle('muted', sfxMuted);
+            }
+            if (icon === musicIcon) {
+                musicMuted = !musicMuted;
+                control.classList.toggle('muted', musicMuted);
+                updateMusicVolume();
+            }
+        });
+    });
+    musicGainNode.gain.value = musicSlider.value;
+    
+    ["click", "keydown", "touchstart"].forEach(event =>
+        window.addEventListener(event, onFirstInteraction)
+    );
+
     difficultyButtons.forEach(button => {
         button.addEventListener('click', () => {
             difficulty = difficulties[button.dataset.difficulty];
@@ -56,9 +121,6 @@ document.addEventListener('DOMContentLoaded', () => { // Ensure DOM is loaded be
         });
     });
 
-
-    sfxIcon.addEventListener('click', toggleSFXVolume);
-    musicIcon.addEventListener('click', toggleMusicVolume);
 
     newGame();
 
@@ -71,7 +133,7 @@ function winGame() { // TODO: Finish implementing this fully
     // Play win animation (cards dancing)
     cards.forEach(card => {
         setTrackedTimeout(() => {
-            card.lastElementChild.classList.add('cheering');
+            card.classList.add('cheering');
         }, Math.floor(Math.random() * 7) * 100);
     });
 
@@ -89,18 +151,18 @@ function winGame() { // TODO: Finish implementing this fully
 }
 
 function playCheerSound(cardId) { // Plays a cheer sound for specified cards, random ones for unspecified
-    let cheerSound = cheerSounds.random[Math.floor(Math.random() * cheerSounds.random.length)];
+    let cheerSound = sfx.cheerSounds.random[Math.floor(Math.random() * sfx.cheerSounds.random.length)];
     if (cardId.includes('king')) {
-        cheerSound = cheerSounds.king;
+        cheerSound = sfx.cheerSounds.king;
     } else if (cardId.includes('queen')) {
-        cheerSound = cheerSounds.queen;
+        cheerSound = sfx.cheerSounds.queen;
     } else if (cardId.includes('jack')) {
-        cheerSound = cheerSounds.jack;
+        cheerSound = sfx.cheerSounds.jack;
     }
     cheerSound = cheerSound.cloneNode(); // Allows for multiple simultaneous cheer sounds
     cheerSound.preservesPitch = false;
     cheerSound.playbackRate = 0.8 + Math.random() * 0.4;
-    cheerSound.volume = sfxMuted ? 0 : 1;
+    cheerSound.volume = sfxMuted ? 0 : sfxVolume;
     cheerSound.play();
     console.log(`Card ${cardId} is cheering! Cheer sound: ${cheerSound.src}`); // TODO: Delete after testing
 }
@@ -134,10 +196,10 @@ function createCards() { // Creates a pair of card elements from randomly chosen
     for (let i = 0; i < chosenCards.length; i++) { // Create two cards for every pair chosen
         cardContainer.innerHTML += `
         <span class="card" data-card-id="${chosenCards[i]}">
-            <img src="images/card-back.png" class="card-img">
+            <img src="images/cards-classic/card-back.png" class="card-img">
         </span>
         <span class="card" data-card-id="${chosenCards[i]}">
-            <img src="images/card-back.png" class="card-img">
+            <img src="images/cards-classic/card-back.png" class="card-img">
         </span>
     `;
     }
@@ -176,7 +238,7 @@ function choosePairs(pairs) { // Chooses random pairs of cards from availableCar
 }
 
 function selectCard(card) { // Handles the logic for when a card is clicked
-    if (card.lastElementChild.classList.contains('matched')) return;
+    if (card.classList.contains('matched')) return;
     if (!isTimerRunning) startTimer();
     if (!firstCard) {
         firstCard = card;
@@ -193,28 +255,19 @@ function flipCard(card) {
     const flipDuration = parseFloat(getComputedStyle(card.lastElementChild).getPropertyValue('--flip-duration')) * 1000;
     // Don't need CanFlip anymore (or any boolean to track) since you can only select a card if a pair hasn't been flipped yet
 
-    card.lastElementChild.classList.toggle('flipped');
-    if (card.lastElementChild.classList.contains('flipped')) { // Not flipped -> Flipped
+    card.classList.toggle('flipped');
+    if (card.classList.contains('flipped')) { // Not flipped -> Flipped
 
         setTrackedTimeout(() => {
-            card.lastElementChild.src = `images/${card.dataset.cardId}.png`;
+            card.lastElementChild.src = `images/cards-classic/${card.dataset.cardId}.png`;
         }, flipDuration / 2.0);
-
-        cardFlipSound.currentTime = 0;
-        cardFlipSound.playbackRate = 0.9 + Math.random() * 0.2;
-        cardFlipSound.preservesPitch = false;
-        cardFlipSound.play();
+        playSFX(sfx.cardFlip, true, 0.2);
 
     } else { // Flipped -> Not flipped
         setTrackedTimeout(() => {
-            card.lastElementChild.src = `images/card-back.png`;
+            card.lastElementChild.src = `images/cards-classic/card-back.png`;
         }, flipDuration / 2.0);
-
-        cardResetSound.currentTime = 0;
-        cardResetSound.playbackRate = 0.9 + Math.random() * 0.2;
-        cardResetSound.preservesPitch = false;
-        cardResetSound.play();
-
+        playSFX(sfx.cardReset, true, 0.2);
     }
 }
 
@@ -237,10 +290,9 @@ function clearPair() {
 }
 
 function acceptMatch() {
-    firstCard.lastElementChild.classList.add('matched');
-    secondCard.lastElementChild.classList.add('matched');
-    matchAcceptSound.currentTime = 0;
-    matchAcceptSound.play();
+    firstCard.classList.add('matched');
+    secondCard.classList.add('matched');
+    playSFX(sfx.matchAccept, true);
 
     // Increment match count and update display
     matchesFound++;
@@ -261,17 +313,16 @@ function acceptMatch() {
 function rejectMatch() {
     const first = firstCard;
     const second = secondCard;
-    firstCard.lastElementChild.classList.add('rejected');
-    secondCard.lastElementChild.classList.add('rejected');
-    matchRejectSound.currentTime = 0;
-    matchRejectSound.play();
+    firstCard.classList.add('rejected');
+    secondCard.classList.add('rejected');
+    playSFX(sfx.matchReject, true);
     clearPair();
 
     setTrackedTimeout(() => {
         flipCard(first);
         flipCard(second);
-        first.lastElementChild.classList.remove('rejected');
-        second.lastElementChild.classList.remove('rejected');
+        first.classList.remove('rejected');
+        second.classList.remove('rejected');
     }, 500);
 }
 
@@ -310,33 +361,37 @@ function resetTimer() {
 function onCardHover(card) {
 
     // Play hover sound only if the card is not flipped
-    if (!card.lastElementChild.classList.contains('flipped')) {
-        cardHoverSound.currentTime = 0;
-        cardHoverSound.playbackRate = 0.9 + Math.random() * 0.2;
-        cardHoverSound.preservesPitch = false;
-        cardHoverSound.play();
+    if (!card.classList.contains('flipped')) {
+        playSFX(sfx.cardHover, true, 0.2);
     }
 }
 
-let sfxMuted = false;
-function toggleSFXVolume() {
-    sfxMuted = !sfxMuted;
-    cardFlipSound.volume = sfxMuted ? 0 : 1;
-    cardHoverSound.volume = sfxMuted ? 0 : 1;
-    cardResetSound.volume = sfxMuted ? 0 : 1;
-    matchRejectSound.volume = sfxMuted ? 0 : 1;
-    matchAcceptSound.volume = sfxMuted ? 0 : 1;
-    // sfxIcon.src = sfxMuted ? 'images/sfx-icon-muted.png' : 'images/sfx-icon.png';
-    sfxIcon.classList.toggle('muted', sfxMuted);
+function setSFXVolume(value) {
+    value = Number(value);
+    sfxVolume = value;
+    sfxIcon.classList.toggle('muted', value === 0);
+    console.log(`SFX volume set to ${value}`); // TODO: Delete after testing
 }
 
-let musicMuted = false;
-function toggleMusicVolume() {
-    musicMuted = !musicMuted;
-    // TODO: Implement music and set its volume to 0 when muted
-    // musicIcon.src = musicMuted ? 'images/music-icon-muted.png' : 'images/music-icon.png';
+function playSFX(audio, repeat = false, randomPitchRange = 0) {
+    if (repeat) audio.currentTime = 0;
+    audio.volume = sfxMuted ? 0 : sfxVolume;
+    audio.playbackRate = 1 - (randomPitchRange / 2) + Math.random() * randomPitchRange;
+    audio.preservesPitch = false;
+    audio.play();
+}
 
-    musicIcon.classList.toggle('muted', musicMuted);
+function setMusicVolume(value) {
+    value = Number(value);
+    musicVolume = value;
+    updateMusicVolume();
+    musicIcon.classList.toggle('muted', value === 0);
+    console.log(`Music volume set to ${value}`); // TODO: Delete after testing
+}
+
+function updateMusicVolume() {
+    musicGainNode.gain.value = musicMuted ? 0 : musicVolume;
+    console.log(`Music volume updated. Muted: ${musicMuted}, Volume: ${musicVolume}`); // TODO: Delete after testing
 }
 
 function setTrackedTimeout(callback, delay) {// Tracks all timeouts set by this function
