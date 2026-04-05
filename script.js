@@ -13,11 +13,6 @@ const sfx = {
     }
 }
 
-let sfxVolume = 1;
-let musicVolume = 1;
-let sfxMuted = false;
-let musicMuted = false;
-
 const difficultyButtons = Array.from(document.querySelectorAll('.difficulty-button'));
 const volumeControls = document.querySelectorAll('.volume-control');
 const sfxIcon = document.getElementById('sfx-icon');
@@ -25,7 +20,7 @@ const musicIcon = document.getElementById('music-icon');
 
 const timeoutIds = []; // Array to keep track of active timeouts for cleanup on game reset
 
-let availableCards = ["hearts-ace", "hearts-2", "hearts-3", "hearts-4", "hearts-5", "hearts-6", "hearts-7", "hearts-8", "hearts-9", "hearts-10", "hearts-jack", "hearts-queen", "hearts-king",
+const availableCards = ["hearts-ace", "hearts-2", "hearts-3", "hearts-4", "hearts-5", "hearts-6", "hearts-7", "hearts-8", "hearts-9", "hearts-10", "hearts-jack", "hearts-queen", "hearts-king",
     "diamonds-ace", "diamonds-2", "diamonds-3", "diamonds-4", "diamonds-5", "diamonds-6", "diamonds-7", "diamonds-8", "diamonds-9", "diamonds-10", "diamonds-jack", "diamonds-queen", "diamonds-king",
     "clubs-ace", "clubs-2", "clubs-3", "clubs-4", "clubs-5", "clubs-6", "clubs-7", "clubs-8", "clubs-9", "clubs-10", "clubs-jack", "clubs-queen", "clubs-king",
     "spades-ace", "spades-2", "spades-3", "spades-4", "spades-5", "spades-6", "spades-7", "spades-8", "spades-9", "spades-10", "spades-jack", "spades-queen", "spades-king"
@@ -44,7 +39,11 @@ let difficulty = difficulties.easy;
 let matchesFound = 0;
 let timer = 0;
 let isTimerRunning = false;
-let music = new Audio('music/card-game-theme-classic.wav');
+let sfxVolume = 1;
+let musicVolume = 1;
+let sfxMuted = false;
+let musicMuted = false;
+let comboCount = 0;
 
 // Only play music after first interaction with page (for autoplay policies)
 function onFirstInteraction() {
@@ -60,6 +59,7 @@ musicGainNode.gain.value = musicVolume;
 musicGainNode.connect(audioCtx.destination);
 
 async function playBGMLoop() {
+    updateMusicVolume();
     const response = await fetch("music/card-game-theme-classic.wav");
     const arrayBuffer = await response.arrayBuffer();
     const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
@@ -81,35 +81,55 @@ document.addEventListener('DOMContentLoaded', () => { // Ensure DOM is loaded be
         offset = offset % 128;
     }, 20);
 
+    // Load stuff from localStorage
+    setMusicVolume(localStorage.getItem('musicVolume') || 0.5);
+    setSFXVolume(localStorage.getItem('sfxVolume') || 0.5);
+    musicMuted = localStorage.getItem('musicMuted') === 'true';
+    sfxMuted = localStorage.getItem('sfxMuted') === 'true';
+
+
     // Register event listeners
 
     const musicSlider = document.getElementById('music-volume-slider');
     const sfxSlider = document.getElementById('sfx-volume-slider');
+    musicSlider.value = musicVolume;
+    sfxSlider.value = sfxVolume;
     volumeControls.forEach(control => {
         const icon = control.querySelector('.volume-icon');
+        control.classList.toggle('muted', (icon === musicIcon && musicMuted) || (icon === sfxIcon && sfxMuted));
 
         musicSlider.addEventListener('input', () => {
             setMusicVolume(musicSlider.value);
+        });
+        musicSlider.addEventListener('change', () => {
+            localStorage.setItem('musicVolume', musicSlider.value);
         });
 
         sfxSlider.addEventListener('input', () => {
             setSFXVolume(sfxSlider.value);
         });
+        sfxSlider.addEventListener('change', () => {
+            localStorage.setItem('sfxVolume', sfxSlider.value);
+        });
 
+        // Mute/unmute when clicking the icon
         icon.addEventListener('click', () => {
             if (icon === sfxIcon) {
                 sfxMuted = !sfxMuted;
                 control.classList.toggle('muted', sfxMuted);
+                localStorage.setItem('sfxMuted', sfxMuted);
             }
             if (icon === musicIcon) {
                 musicMuted = !musicMuted;
                 control.classList.toggle('muted', musicMuted);
                 updateMusicVolume();
+                localStorage.setItem('musicMuted', musicMuted);
             }
         });
     });
     musicGainNode.gain.value = musicSlider.value;
-    
+    sfxVolume = sfxSlider.value;
+
     ["click", "keydown", "touchstart"].forEach(event =>
         window.addEventListener(event, onFirstInteraction)
     );
@@ -120,7 +140,6 @@ document.addEventListener('DOMContentLoaded', () => { // Ensure DOM is loaded be
             newGame();
         });
     });
-
 
     newGame();
 
@@ -174,8 +193,12 @@ function newGame() { // Resets the game with new cards (based on the current dif
     clearPair();
     resetTimer();
     matchesFound = 0;
+    comboCount = 0;
+    updateCombo(false);
     const matchesDisplay = document.getElementById('matches');
+    const pairsDisplay = document.getElementById('total-pairs');
     matchesDisplay.textContent = matchesFound;
+    pairsDisplay.textContent = difficulty[0];
 
     // Reset cards based on difficulty
     const sizeMultiplier = difficulty[2];
@@ -206,10 +229,7 @@ function createCards() { // Creates a pair of card elements from randomly chosen
 
     // Shuffle cards using Fisher-Yates algorithm
     const cards = Array.from(cardContainer.querySelectorAll('.card'));
-    for (let i = cards.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [cards[i], cards[j]] = [cards[j], cards[i]];
-    }
+    shuffleArray(cards);
     cards.forEach(card => cardContainer.appendChild(card)); // Doesn't add duplicate cards, just reorders them since they're already in the container
 
     // Add event listeners to cards
@@ -272,8 +292,10 @@ function flipCard(card) {
 }
 
 function checkPair() { // Checks if a selected pair of cards is a match
+    let isMatch = firstCard.dataset.cardId === secondCard.dataset.cardId;
     setTrackedTimeout(() => {
-        if (firstCard.dataset.cardId === secondCard.dataset.cardId) {
+        updateCombo(isMatch);
+        if (isMatch) {
             acceptMatch();
         }
         else {
@@ -299,6 +321,12 @@ function acceptMatch() {
     const matchesDisplay = document.getElementById('matches');
     matchesDisplay.textContent = matchesFound;
 
+    createComboNumberElement(
+        firstCard.getBoundingClientRect().left + firstCard.getBoundingClientRect().width / 2, firstCard.getBoundingClientRect().top
+    );
+    createComboNumberElement(
+        secondCard.getBoundingClientRect().left + secondCard.getBoundingClientRect().width / 2, secondCard.getBoundingClientRect().top
+    );
     clearPair();
 
     // Win the game if all cards are matched
@@ -324,6 +352,40 @@ function rejectMatch() {
         first.classList.remove('rejected');
         second.classList.remove('rejected');
     }, 500);
+}
+
+function updateCombo(isMatch) { // TODO: Implement combo system and call this function in acceptMatch and rejectMatch
+    const comboDisplay = document.getElementById('combo');
+    if (isMatch) {
+        comboCount++;
+        comboDisplay.textContent = comboCount;
+        animateElement(comboDisplay, 'combo-increase', 0.2 / Math.sqrt(comboCount), 'linear', comboCount);
+    } else {
+        comboCount = 0;
+        comboDisplay.textContent = comboCount;
+        animateElement(comboDisplay, 'combo-reset', 0.3, 'linear', 2);
+    }
+}
+
+function createComboNumberElement( x, y) { // Creates an element that shows the combo count increase when a match is made, then animates and removes itself
+    const comboNumber = document.createElement('p');
+    comboNumber.textContent = `x${comboCount}`;
+    comboNumber.classList.add('combo-number');
+    document.body.appendChild(comboNumber);
+
+    const rect = comboNumber.getBoundingClientRect();
+    comboNumber.style.left = `${x - rect.width / 2}px`;
+    comboNumber.style.top = `${y - rect.height / 2}px`;
+    setTimeout(() => { // Regular timeout because we want it to disappear regardless of whether the game resets
+        comboNumber.remove();
+    }, parseFloat(getComputedStyle(comboNumber).getPropertyValue('--duration')) * 1000);
+}
+
+
+function animateElement(element, animationName, duration = 1, transition = 'linear', count = 1, delay = 0) {
+    element.style.animation = 'none';
+    element.offsetHeight; // Trigger reflow to restart animation
+    element.style.animation = `${animationName} ${duration}s ${transition} ${delay}s ${count}`;
 }
 
 function setCardsPerRow(n) {
@@ -356,7 +418,6 @@ function resetTimer() {
     timer = 0;
     document.getElementById('timer').textContent = '00:00.000';
 }
-
 
 function onCardHover(card) {
 
@@ -405,22 +466,28 @@ function clearTrackedTimeouts() { // Allows for canceling all timeouts (for rest
     timeoutIds.length = [];
 }
 
+function shuffleArray(array) { // Fisher-Yates algorithm
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+}
+
 // Things I want to add:
 // - Choosing different card themes (animals, flags, etc.)
 // - Different background themes (space, nature, etc.)
 // - Match 3
 // - Mode that shuffles cards every time you miss two matches in a row
 // - Hints
-// - Music
 // - Win sound
 // - Combo counter
 
 // Things I want to improve:
-// - Make visuals based on hovering over the card itself instead of the image since the image escapes the cursor when it moves sometimes
+// - [DONE] Make visuals based on hovering over the card itself instead of the image since the image escapes the cursor when it moves sometimes
 
 // Feedback received:
-// - Audio too loud (Fixed)
-// - "Custom" difficulty
+// - [FIXED (Added volume sliders)] Audio too loud
 
 // Suggestions:
 // - Add volume sliders for music and sfx instead of just mute buttons
+// - "Custom" difficulty
